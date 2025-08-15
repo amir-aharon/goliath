@@ -10,16 +10,13 @@ import (
 )
 
 func RegisterBuiltins(r *Router) {
-	r.Handle("PING", func(w io.Writer, _ []string) error {
+	r.Handle("PING", 0, 0, func(w io.Writer, _ []string) error {
 		return proto.PONG(w)
 	})
-	r.Handle("ECHO", func(w io.Writer, args []string) error {
-		if len(args) < 1 {
-			return proto.Err(w, "wrong number of arguments for 'ECHO'")
-		}
+	r.Handle("ECHO", 1, 1, func(w io.Writer, args []string) error {
 		return proto.Line(w, args[0])
 	})
-	r.Handle("QUIT", func(w io.Writer, _ []string) error {
+	r.Handle("QUIT", 0, 0, func(w io.Writer, _ []string) error {
 		if err := proto.OK(w); err != nil {
 			return err
 		}
@@ -28,28 +25,19 @@ func RegisterBuiltins(r *Router) {
 }
 
 func RegisterKV(r *Router, kv store.KV) {
-	r.Handle("GET", func(w io.Writer, args []string) error {
-		if len(args) != 1 {
-			return proto.Err(w, "wrong number of arguments for 'GET'")
-		}
+	r.Handle("GET", 1, 1, func(w io.Writer, args []string) error {
 		if v, ok := kv.Get(args[0]); ok {
 			return proto.Line(w, v)
 		}
 		return proto.Err(w, "key not found")
 	})
 
-	r.Handle("SET", func(w io.Writer, args []string) error {
-		if len(args) != 2 {
-			return proto.Err(w, "wrong number of arguments for 'SET'")
-		}
+	r.Handle("SET", 2, 2, func(w io.Writer, args []string) error {
 		kv.Set(args[0], args[1])
 		return proto.OK(w)
 	})
 
-	r.Handle("SETEX", func(w io.Writer, args []string) error {
-		if len(args) != 3 {
-			return proto.Err(w, "wrong number of arguments for 'SETEX'")
-		}
+	r.Handle("SETEX", 3, 3, func(w io.Writer, args []string) error {
 		secs, err := strconv.Atoi(args[1])
 		if err != nil || secs <= 0 {
 			return proto.Err(w, "seconds must be a positive integer")
@@ -58,10 +46,7 @@ func RegisterKV(r *Router, kv store.KV) {
 		return proto.OK(w)
 	})
 
-	r.Handle("DEL", func(w io.Writer, args []string) error {
-		if len(args) != 1 {
-			return proto.Err(w, "wrong number of arguments for 'DEL'")
-		}
+	r.Handle("DEL", 1, 1, func(w io.Writer, args []string) error {
 		if kv.Del(args[0]) {
 			return proto.OK(w)
 		}
@@ -70,10 +55,7 @@ func RegisterKV(r *Router, kv store.KV) {
 }
 
 func RegisterTTL(r *Router, kv store.KV) {
-	r.Handle("TTL", func(w io.Writer, args []string) error {
-		if len(args) != 1 {
-			return proto.Err(w, "wrong number of arguments for 'TTL'")
-		}
+	r.Handle("TTL", 1, 1, func(w io.Writer, args []string) error {
 		secs, exists, hasExp := kv.TTL(args[0])
 		switch {
 		case !exists:
@@ -83,5 +65,13 @@ func RegisterTTL(r *Router, kv store.KV) {
 		default:
 			return proto.Int(w, int64(secs))
 		}
+	})
+
+	r.Handle("PERSIST", 1, 1, func(w io.Writer, args []string) error {
+		hasExp := kv.Persist(args[0])
+		if hasExp {
+			return proto.Int(w, 1)
+		}
+		return proto.Int(w, 0)
 	})
 }
