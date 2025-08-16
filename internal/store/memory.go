@@ -14,10 +14,11 @@ type memory struct {
 	mu               sync.RWMutex
 	m                map[string]entry
 	cfg MemoryConfig
+	clock Clock
 }
 
 func (mem *memory) getEntry(k string) (entry, bool) {
-	now := time.Now()
+	now := mem.clock.Now()
 
 	mem.mu.RLock()
 	e, ok := mem.m[k]
@@ -29,7 +30,7 @@ func (mem *memory) getEntry(k string) (entry, bool) {
 
 	if e.expired(now) {
 		mem.mu.Lock()
-		if e2, ok2 := mem.m[k]; ok2 && e2.expired(time.Now()) {
+		if e2, ok2 := mem.m[k]; ok2 && e2.expired(mem.clock.Now()) {
 			delete(mem.m, k)
 			mem.mu.Unlock()
 			return entry{}, false
@@ -57,7 +58,7 @@ func (mem *memory) Set(k, v string) {
 
 func (mem *memory) SetEx(k, v string, ttl time.Duration) {
 	mem.mu.Lock()
-	mem.m[k] = entry{val: v, expiresAt: time.Now().Add(ttl)}
+	mem.m[k] = entry{val: v, expiresAt: mem.clock.Now().Add(ttl)}
 	mem.mu.Unlock()
 }
 

@@ -1,6 +1,8 @@
 package store
 
-import "time"
+import (
+	"time"
+)
 
 func (e entry) expired(now time.Time) bool {
 	return !e.expiresAt.IsZero() && now.After(e.expiresAt)
@@ -16,7 +18,8 @@ func (mem *memory) TTL(k string) (int64, bool, bool) {
 		return 0, true, false
 	}
 
-	secs := max(int64(time.Until(e.expiresAt).Seconds()), 0)
+	remaining := e.expiresAt.Sub(mem.clock.Now())
+	secs := max(int64(remaining.Seconds()), 0)
 	return secs, true, true
 }
 

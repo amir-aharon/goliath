@@ -27,7 +27,7 @@ func (mem *memory) sweepExpired() {
 	}
 
 	N := min(mem.cfg.SweepSampleSize, len(keys))
-	now := time.Now()
+	now := mem.clock.Now()
 
 	// random unique sample of up to N keys
 	rand.Shuffle(len(keys), func(i, j int) { keys[i], keys[j] = keys[j], keys[i] })

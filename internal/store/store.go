@@ -15,10 +15,21 @@ type KV interface {
 
 func NewMemory() *memory {
 	cfg := LoadMemoryConfig()
+	return newMemory(realClock{}, cfg)
+}
+
+func NewMemoryWithClock(c Clock) *memory { // <-- for tests
+	cfg := LoadMemoryConfig()
+	return newMemory(c, cfg)
+}
+
+func newMemory(c Clock, cfg MemoryConfig) *memory {
 	m := &memory{
-		m:   make(map[string]entry),
-		cfg: cfg,
+		m:     make(map[string]entry),
+		cfg:   cfg,
+		clock: c,
 	}
 	go m.startSweeper()
 	return m
 }
+
