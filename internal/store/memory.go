@@ -14,8 +14,6 @@ type memory struct {
 	mu               sync.RWMutex
 	m                map[string]entry
 	cfg MemoryConfig
-	SweepIntervalSec int
-	SweepSampleSize  int
 }
 
 func (mem *memory) getEntry(k string) (entry, bool) {
