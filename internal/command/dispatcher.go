@@ -20,6 +20,14 @@ type Spec struct {
 	Handler  Handler
 }
 
+func (s Spec) Validate(name string, args []string) error {
+	n := len(args)
+	if n < s.MinArgs || (s.MaxArgs >= 0 && n > s.MaxArgs) {
+		return fmt.Errorf("wrong number of arguments for '%s'", strings.ToUpper(name))
+	}
+	return nil
+}
+
 type CommandTable map[string]Spec
 
 type Dispatcher struct {
@@ -45,9 +53,8 @@ func (d *Dispatcher) Dispatch(w io.Writer, name string, args []string) error {
 		return proto.Err(w, "unknown command")
 	}
 
-	n := len(args)
-	if n < spec.MinArgs || (spec.MaxArgs >= 0 && n > spec.MaxArgs) {
-		return proto.Err(w, fmt.Sprintf("wrong number of arguments for '%s'", strings.ToUpper(name)))
+	if err := spec.Validate(name, args); err != nil {
+		return proto.Err(w, err.Error())
 	}
 
 	return spec.Handler(w, args)
