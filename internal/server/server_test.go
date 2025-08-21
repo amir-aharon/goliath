@@ -29,12 +29,12 @@ func waitReady(addr string, timeout time.Duration) error {
 }
 
 func TestServer_EchoSmoke(t *testing.T) {
-	// Build router + store
-	r := command.NewRouter()
-	command.RegisterBuiltins(r)
+	// Build dispatcher + store
+	d := command.NewDispatcher()
+	command.RegisterBuiltins(d)
 	kv := store.NewMemory()
-	command.RegisterKV(r, kv)
-	command.RegisterTTL(r, kv)
+	command.RegisterKV(d, kv)
+	command.RegisterTTL(d, kv)
 
 	// Pick a free port by binding to :0, grab it, close it, then let server use it.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
@@ -49,7 +49,7 @@ func TestServer_EchoSmoke(t *testing.T) {
 		Addr: "127.0.0.1",
 		Port: port,
 		New: func(c net.Conn) interface{ Run() } {
-			return session.New(c, r)
+			return session.New(c, d)
 		},
 	}
 

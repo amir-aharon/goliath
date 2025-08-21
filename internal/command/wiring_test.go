@@ -8,24 +8,24 @@ import (
 )
 
 func TestRegisterKV_RegistersKVCommands(t *testing.T) {
-	r := command.NewRouter()
+	d := command.NewDispatcher()
 	kv := store.NewMemory()
-	command.RegisterKV(r, kv)
+	command.RegisterKV(d, kv)
 
 	for _, name := range []string{"GET", "SET", "DEL", "SETEX"} {
-		if got, _ := run(r, name); got == "-ERR unknown command\r\n" {
+		if got, _ := run(d, name); got == "-ERR unknown command\r\n" {
 			t.Fatalf("%s unexpectedly unknown", name)
 		}
 	}
 }
 
 func TestRegisterTTL_RegistersTTLAndPersist(t *testing.T) {
-	r := command.NewRouter()
+	d := command.NewDispatcher()
 	kv := store.NewMemory()
-	command.RegisterTTL(r, kv)
+	command.RegisterTTL(d, kv)
 
 	for _, name := range []string{"TTL", "PERSIST"} {
-		if got, _ := run(r, name); got == "-ERR unknown command\r\n" {
+		if got, _ := run(d, name); got == "-ERR unknown command\r\n" {
 			t.Fatalf("%s unexpectedly unknown", name)
 		}
 	}

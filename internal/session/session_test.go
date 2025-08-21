@@ -11,21 +11,21 @@ import (
 	"github.com/amir-aharon/goliath/internal/store"
 )
 
-func newRouter() *command.Router {
-	r := command.NewRouter()
-	command.RegisterBuiltins(r)
+func newDispatcher() *command.Dispatcher {
+	d := command.NewDispatcher()
+	command.RegisterBuiltins(d)
 	kv := store.NewMemory()
-	command.RegisterKV(r, kv)
-	command.RegisterTTL(r, kv)
-	return r
+	command.RegisterKV(d, kv)
+	command.RegisterTTL(d, kv)
+	return d
 }
 
 func TestSession_PINGAndQUIT(t *testing.T) {
 	serverConn, clientConn := net.Pipe()
 	defer clientConn.Close()
 
-	r := newRouter()
-	sess := session.New(serverConn, r)
+	d := newDispatcher()
+	sess := session.New(serverConn, d)
 	done := make(chan struct{})
 	go func() { defer close(done); sess.Run() }()
 

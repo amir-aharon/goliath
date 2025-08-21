@@ -11,14 +11,14 @@ import (
 
 // per-connection handler
 type Session struct {
-	Conn   net.Conn
-	Router *command.Router
+	Conn       net.Conn
+	Dispatcher *command.Dispatcher
 }
 
-func New(c net.Conn, r *command.Router) *Session {
+func New(c net.Conn, d *command.Dispatcher) *Session {
 	return &Session{
-		Conn:   c,
-		Router: r,
+		Conn:       c,
+		Dispatcher: d,
 	}
 }
 
@@ -38,7 +38,7 @@ func (sess *Session) Run() {
 			continue
 		}
 
-		if err := sess.Router.Dispatch(sess.Conn, fields[0], fields[1:]); err != nil {
+		if err := sess.Dispatcher.Dispatch(sess.Conn, fields[0], fields[1:]); err != nil {
 			if errors.Is(err, command.ErrQuit) {
 				return
 			}

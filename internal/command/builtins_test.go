@@ -9,8 +9,8 @@ import (
 )
 
 func TestPING_WritesPONG(t *testing.T) {
-	r := newRouter()
-	got, err := run(r, "PING")
+	d := newDispatcher()
+	got, err := run(d, "PING")
 	if err != nil {
 		t.Fatalf("dispatch error: %v", err)
 	}
@@ -20,8 +20,8 @@ func TestPING_WritesPONG(t *testing.T) {
 }
 
 func TestECHO_EchoesArgument(t *testing.T) {
-	r := newRouter()
-	got, err := run(r, "ECHO", "hello")
+	d := newDispatcher()
+	got, err := run(d, "ECHO", "hello")
 	if err != nil {
 		t.Fatalf("dispatch error: %v", err)
 	}
@@ -31,8 +31,8 @@ func TestECHO_EchoesArgument(t *testing.T) {
 }
 
 func TestQUIT_RespondsOKAndReturnsErrQuit(t *testing.T) {
-	r := newRouter()
-	got, err := run(r, "QUIT")
+	d := newDispatcher()
+	got, err := run(d, "QUIT")
 	if got != "+OK\r\n" {
 		t.Fatalf("reply got %q, want %q", got, "+OK\r\n")
 	}
@@ -53,9 +53,9 @@ func TestBuiltins_WrongArity(t *testing.T) {
 		{"QUIT", []string{"x"}}, // too many
 	}
 
-	r := newRouter()
+	d := newDispatcher()
 	for _, c := range cases {
-		got, err := run(r, c.name, c.args...)
+		got, err := run(d, c.name, c.args...)
 		// Wrong-arity never calls the handler, so no ErrQuit and no other errors.
 		if err != nil {
 			t.Fatalf("%s wrong-arity: unexpected error: %v", c.name, err)

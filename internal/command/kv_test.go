@@ -6,8 +6,8 @@ import (
 )
 
 func TestSET_ReturnsOK(t *testing.T) {
-	r := newRouter()
-	got, err := run(r, "SET", "k", "v")
+	d := newDispatcher()
+	got, err := run(d, "SET", "k", "v")
 	if err != nil {
 		t.Fatalf("dispatch error: %v", err)
 	}
@@ -17,11 +17,11 @@ func TestSET_ReturnsOK(t *testing.T) {
 }
 
 func TestGET_ExistingKey(t *testing.T) {
-	r := newRouter()
-	if _, err := run(r, "SET", "k", "v"); err != nil {
+	d := newDispatcher()
+	if _, err := run(d, "SET", "k", "v"); err != nil {
 		t.Fatalf("SET error: %v", err)
 	}
-	got, err := run(r, "GET", "k")
+	got, err := run(d, "GET", "k")
 	if err != nil {
 		t.Fatalf("GET error: %v", err)
 	}
@@ -31,8 +31,8 @@ func TestGET_ExistingKey(t *testing.T) {
 }
 
 func TestGET_MissingKey(t *testing.T) {
-	r := newRouter()
-	got, err := run(r, "GET", "nope")
+	d := newDispatcher()
+	got, err := run(d, "GET", "nope")
 	if err != nil {
 		t.Fatalf("dispatch error: %v", err)
 	}
@@ -42,11 +42,11 @@ func TestGET_MissingKey(t *testing.T) {
 }
 
 func TestDEL_ExistingKey_RemovesKey(t *testing.T) {
-	r := newRouter()
-	if _, err := run(r, "SET", "k", "v"); err != nil {
+	d := newDispatcher()
+	if _, err := run(d, "SET", "k", "v"); err != nil {
 		t.Fatalf("SET error: %v", err)
 	}
-	got, err := run(r, "DEL", "k")
+	got, err := run(d, "DEL", "k")
 	if err != nil {
 		t.Fatalf("DEL error: %v", err)
 	}
@@ -54,14 +54,14 @@ func TestDEL_ExistingKey_RemovesKey(t *testing.T) {
 		t.Fatalf("got %q, want %q", got, "+OK\r\n")
 	}
 	// follow-up GET should now error
-	if got, _ := run(r, "GET", "k"); got != "-ERR key not found\r\n" {
+	if got, _ := run(d, "GET", "k"); got != "-ERR key not found\r\n" {
 		t.Fatalf("after DEL, GET got %q, want %q", got, "-ERR key not found\r\n")
 	}
 }
 
 func TestDEL_MissingKey_ReturnsErr(t *testing.T) {
-	r := newRouter()
-	got, err := run(r, "DEL", "nope")
+	d := newDispatcher()
+	got, err := run(d, "DEL", "nope")
 	if err != nil {
 		t.Fatalf("dispatch error: %v", err)
 	}
@@ -71,20 +71,20 @@ func TestDEL_MissingKey_ReturnsErr(t *testing.T) {
 }
 
 func TestKV_WrongArity(t *testing.T) {
-	r := newRouter()
+	d := newDispatcher()
 	cases := []struct {
 		name string
 		args []string
 	}{
-		{"GET", nil},                  // too few
-		{"GET", []string{"a", "b"}},   // too many
-		{"SET", []string{"k"}},        // too few
+		{"GET", nil},                     // too few
+		{"GET", []string{"a", "b"}},      // too many
+		{"SET", []string{"k"}},           // too few
 		{"SET", []string{"k", "v", "x"}}, // too many
-		{"DEL", nil},                  // too few
-		{"DEL", []string{"a", "b"}},   // too many
+		{"DEL", nil},                     // too few
+		{"DEL", []string{"a", "b"}},      // too many
 	}
 	for _, c := range cases {
-		got, err := run(r, c.name, c.args...)
+		got, err := run(d, c.name, c.args...)
 		if err != nil {
 			t.Fatalf("%s wrong-arity: unexpected error: %v", c.name, err)
 		}

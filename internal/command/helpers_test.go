@@ -14,27 +14,27 @@ func newFakeClock(t time.Time) *fakeClock    { return &fakeClock{t: t} }
 func (f *fakeClock) Now() time.Time          { return f.t }
 func (f *fakeClock) Advance(d time.Duration) { f.t = f.t.Add(d) }
 
-func newRouter() *command.Router {
-	r := command.NewRouter()
-	command.RegisterBuiltins(r)
+func newDispatcher() *command.Dispatcher {
+	d := command.NewDispatcher()
+	command.RegisterBuiltins(d)
 	kv := store.NewMemory()
-	command.RegisterKV(r, kv)
-	command.RegisterTTL(r, kv)
-	return r
+	command.RegisterKV(d, kv)
+	command.RegisterTTL(d, kv)
+	return d
 }
 
-func newRouterWithClock(c store.Clock) *command.Router {
-	r := command.NewRouter()
-	command.RegisterBuiltins(r)
+func newDispatcherWithClock(c store.Clock) *command.Dispatcher {
+	d := command.NewDispatcher()
+	command.RegisterBuiltins(d)
 	kv := store.NewMemoryWithClock(c)
-	command.RegisterKV(r, kv)
-	command.RegisterTTL(r, kv)
-	return r
+	command.RegisterKV(d, kv)
+	command.RegisterTTL(d, kv)
+	return d
 }
 
-func run(r *command.Router, name string, args ...string) (string, error) {
+func run(d *command.Dispatcher, name string, args ...string) (string, error) {
 	var buf bytes.Buffer
-	err := r.Dispatch(&buf, name, args)
+	err := d.Dispatch(&buf, name, args)
 	return buf.String(), err
 }
 

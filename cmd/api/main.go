@@ -18,18 +18,18 @@ func main() {
 		port = p
 	}
 
-	r := command.NewRouter()
-	command.RegisterBuiltins(r)
+	d := command.NewDispatcher()
+	command.RegisterBuiltins(d)
 
 	kv := store.NewMemory()
-	command.RegisterKV(r, kv)
-	command.RegisterTTL(r, kv)
+	command.RegisterKV(d, kv)
+	command.RegisterTTL(d, kv)
 
 	srv := server.Server{
 		Addr: "0.0.0.0",
 		Port: port,
 		New: func(c net.Conn) interface{ Run() } {
-			return session.New(c, r)
+			return session.New(c, d)
 		},
 	}
 	log.Fatal(srv.Serve())
